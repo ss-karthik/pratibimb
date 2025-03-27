@@ -23,6 +23,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "...",
+          "cameraPermission": "..."
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
