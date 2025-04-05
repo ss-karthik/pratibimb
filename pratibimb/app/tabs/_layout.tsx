@@ -19,12 +19,25 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "home-sharp" : "home-outline"}
+              color={color}
+              size={24}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="steps"
+        options={{
+          title: "Steps",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "walk-sharp" : "walk-outline"}
               color={color}
               size={24}
             />

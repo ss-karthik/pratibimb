@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { StyleSheet, Text, View, Pressable, SafeAreaView } from "react-native";
 import { Accelerometer } from "expo-sensors";
 
+
 const STEP_THRESHOLD = 1.2; // Adjust this value based on testing
 const STEP_TIMEOUT = 300; // Minimum time between steps (ms)
 

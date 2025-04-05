@@ -23,7 +23,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
  * @param {string} base64Image - Base64 encoded image data of medical report
  * @returns {Promise<{conditions: MedicalCondition[], rawResponse: string}>}
  */
-export async function analyzeMedicalReport(base64Image) {
+export default async function analyzeMedicalReport(base64Image) {
   console.log("Starting medical report analysis...");
   try {
     if (!base64Image) {
