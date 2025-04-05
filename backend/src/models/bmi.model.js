@@ -1,0 +1,1 @@
+//data model to store height, weight, bmi
