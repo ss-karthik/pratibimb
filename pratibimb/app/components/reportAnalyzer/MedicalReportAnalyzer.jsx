@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { analyzeMedicalReport } from "./geminiAPI";
+import analyzeMedicalReport from "./geminiAPI.js";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function MedicalReportAnalyzer() {
