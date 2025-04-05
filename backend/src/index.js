@@ -23,3 +23,4 @@ connectDB()
 app.get("/", (req,res)=>{
     res.send("Pratibimb Backend!")
 })
+
