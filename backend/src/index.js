@@ -1,10 +1,13 @@
 import dotenv from "dotenv";
-import app from "./app.js"
-import connectDB from "./db/db.js"
-
 dotenv.config({
     path: "./env",
 });
+
+import jwt from "jsonwebtoken"
+import app from "./app.js"
+import connectDB from "./db/db.js"
+import {requireAuth} from "./middlewares/authMiddleware.js";
+import { addBmi, showBmi } from "./controllers/bmiController.js";
 
 connectDB()
     .then(() => {
@@ -20,7 +23,15 @@ connectDB()
         console.log("MONGODB Connection failed!! ", err);
     });
 
+
 app.get("/", (req,res)=>{
     res.send("Pratibimb Backend!")
 })
 
+app.get("/user", requireAuth, (req,res)=>{
+    res.json(req.user);
+})
+
+app.get("/bmi", requireAuth, showBmi);
+
+app.post("/bmi", addBmi);
