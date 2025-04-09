@@ -5,9 +5,10 @@ import router from "./routes/authRoutes.js"
 
 
 const app = express();
+const allowedOrigins = [process.env.CORS_ORIGIN, 'http://localhost:5173'];
 app.use(
     cors({
-        origin: process.env.CORS_ORIGIN,
+        origin: allowedOrigins,
         credentials: true,
     })
 );
