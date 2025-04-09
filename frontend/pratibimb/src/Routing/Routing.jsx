@@ -4,6 +4,8 @@ import Home from '../Components/Home/Home'
 import ReportAnalyzer from '../Components/ReportAnalyzer/ReportAnalyzer'
 import Login from '../Components/Auth/Login'
 import Signup from '../Components/Auth/Signup'
+import Bmi from '../Components/BMI/Bmi'
+import BmiCalendar from '../Components/BMI/BmiCalendar'
 import { AuthProvider, AuthContext } from '../Components/Auth/AuthProvider'
 
 const Routing = () => {
@@ -15,6 +17,9 @@ const Routing = () => {
       <Route path='/signup' element={<GuestRoute><Signup/></GuestRoute>}/>
       
       <Route path='/home' element={<PrivateRoute><Home/></PrivateRoute>}/>
+      <Route path='/bmi' element={<PrivateRoute><Bmi/></PrivateRoute>}/>
+      <Route path='/bmicalendar' element={<PrivateRoute><BmiCalendar/></PrivateRoute>}/>
+      
       <Route path='/reports' element={<PrivateRoute><ReportAnalyzer/></PrivateRoute>}/>
     </Routes>
     </AuthProvider>
