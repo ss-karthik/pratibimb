@@ -124,7 +124,7 @@ const Bmi = () => {
   const bmiCategory = averages ? getBmiCategory(averages.avgBmi) : null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-6">
+    <div className="w-full max-w-2xl mx-auto px-4 py-6 my-20">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
           <Activity size={20} className="text-teal-500" />

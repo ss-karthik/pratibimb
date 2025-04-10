@@ -174,7 +174,7 @@ const BmiCalendar = () => {
           </div>
           
           {/* Calendar body */}
-          <div className="grid grid-cols-7 gap-1 h-96 overflow-y-auto">
+          <div className="grid grid-cols-7 gap-1 overflow-y-auto">
             {generateCalendarDays()}
           </div>
         </>
