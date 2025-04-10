@@ -15,7 +15,7 @@ const Routing = () => {
     <Routes>
       <Route path='/login' element={<GuestRoute><Login/></GuestRoute>}/>
       <Route path='/signup' element={<GuestRoute><Signup/></GuestRoute>}/>
-      
+      <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path='/home' element={<PrivateRoute><Home/></PrivateRoute>}/>
       <Route path='/bmi' element={<PrivateRoute><Bmi/></PrivateRoute>}/>
       <Route path='/bmicalendar' element={<PrivateRoute><BmiCalendar/></PrivateRoute>}/>
