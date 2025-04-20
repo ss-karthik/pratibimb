@@ -1,4 +1,4 @@
-import { Clipboard, House, Ruler } from 'lucide-react'
+import { Clipboard, House, Ruler, MessageSquareText } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 const Navbar = () => {
@@ -8,6 +8,7 @@ const Navbar = () => {
         <Link to='/home'><House/></Link>
         <Link to='/bmi'><Ruler/></Link>
         <Link to='/reports'><Clipboard/></Link>
+        <Link to='/medchat'><MessageSquareText/></Link>
       </div>
     </nav>
   )

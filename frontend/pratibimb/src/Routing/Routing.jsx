@@ -7,6 +7,7 @@ import Signup from '../Components/Auth/Signup'
 import Bmi from '../Components/BMI/Bmi'
 import BmiCalendar from '../Components/BMI/BmiCalendar'
 import { AuthProvider, AuthContext } from '../Components/Auth/AuthProvider'
+import Chatbot from '../Components/Chatbot/Chatbot'
 
 const Routing = () => {
   
@@ -19,7 +20,7 @@ const Routing = () => {
       <Route path='/home' element={<PrivateRoute><Home/></PrivateRoute>}/>
       <Route path='/bmi' element={<PrivateRoute><Bmi/></PrivateRoute>}/>
       <Route path='/bmicalendar' element={<PrivateRoute><BmiCalendar/></PrivateRoute>}/>
-      
+      <Route path='/medchat' element={<PrivateRoute><Chatbot/></PrivateRoute>}/>
       <Route path='/reports' element={<PrivateRoute><ReportAnalyzer/></PrivateRoute>}/>
     </Routes>
     </AuthProvider>
