@@ -23,6 +23,24 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please enter a Device ID"],
       unique: true,
     },
+    age: {
+      type: Number,
+      required: [true, "Please enter age"],
+    },
+    gender: {
+      type: String,
+      required: [true, "Please select gender"],
+    },
+    smoker: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    alcoholic: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     bmiValues: [
       {
         type: Schema.Types.ObjectId,
@@ -35,17 +53,12 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.pre("save", async function (next) {
-  const salt = await bcrypt.genSalt();
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+
 
 userSchema.statics.login = async function (email, password) {
   const user = await this.findOne({ email });
   if (user) {
-    const auth = await bcrypt.compare(password, user.password);
-    if (auth) {
+    if (password === user.password) {
       return user;
     }
     throw Error("Incorrect Password");

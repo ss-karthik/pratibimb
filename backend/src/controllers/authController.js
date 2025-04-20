@@ -38,10 +38,10 @@ const createToken = (id)=>{
 
 
 export const signup = async (req,res)=>{
-    const {email, password, deviceId} = req.body;
+    const {email, password, deviceId, age, gender, smoker, alcoholic} = req.body;
     //console.log(`${email} ==> ${password}`);
     try {
-        const user = await User.create({email, password, deviceId});
+        const user = await User.create({email, password, deviceId, age, gender, smoker, alcoholic});
         const token = createToken(user._id);
         res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge*1000});
         res.status(201).json({user: user._id});

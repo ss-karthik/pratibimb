@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { BACKEND_URL } from '../../../constants';
-import { LogOut, User, Smartphone, Activity, Calendar, ClipboardCheck } from 'lucide-react';
+import { LogOut, User, Smartphone, Activity, Calendar, ClipboardCheck, Users, Cigarette, Beer, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [user, setUser] = useState("");
   const [deviceId, setDeviceId] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
+  const [smoker, setSmoker] = useState(false);
+  const [alcoholic, setAlcoholic] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +29,10 @@ const Home = () => {
         if (data._id) {
           setUser(data.email);
           setDeviceId(data.deviceId);
+          setAge(data.age);
+          setGender(data.gender);
+          setSmoker(data.smoker);
+          setAlcoholic(data.alcoholic);
         }
       } catch (err) {
         console.log(err);
@@ -50,8 +58,18 @@ const Home = () => {
     }
   };
 
+  // Helper function to format gender for display
+  const formatGender = (gender) => {
+    if (!gender) return "Not specified";
+    
+    if (gender === "prefernottosay") return "Prefer not to say";
+    
+    // Capitalize first letter
+    return gender.charAt(0).toUpperCase() + gender.slice(1);
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-6">
+    <div className="w-full max-w-2xl mx-auto px-4 py-6 mb-30">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-teal-700">Pratibimb</h1>
@@ -84,7 +102,50 @@ const Home = () => {
             </div>
           </div>
           
-          <div className="bg-teal-700 bg-opacity-20 p-3 rounded-lg mt-4">
+          {/* Personal Details Section */}
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {/* Age */}
+            <div className="bg-teal-700 bg-opacity-20 p-3 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Clock size={16} className="text-teal-200" />
+                <span className="text-xs text-teal-100">Age</span>
+              </div>
+              <div className="font-bold mt-1">{age || "Not specified"}</div>
+            </div>
+            
+            {/* Gender */}
+            <div className="bg-teal-700 bg-opacity-20 p-3 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-teal-200" />
+                <span className="text-xs text-teal-100">Gender</span>
+              </div>
+              <div className="font-bold mt-1">{formatGender(gender)}</div>
+            </div>
+          </div>
+          
+          {/* Health Habits Section */}
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {/* Smoker Status */}
+            <div className="bg-teal-700 bg-opacity-20 p-3 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Cigarette size={16} className="text-teal-200" />
+                <span className="text-xs text-teal-100">Smoking Status</span>
+              </div>
+              <div className="font-bold mt-1">{smoker ? "Smoker" : "Non-smoker"}</div>
+            </div>
+            
+            {/* Alcohol Status */}
+            <div className="bg-teal-700 bg-opacity-20 p-3 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Beer size={16} className="text-teal-200" />
+                <span className="text-xs text-teal-100">Alcohol Status</span>
+              </div>
+              <div className="font-bold mt-1">{alcoholic ? "Consumes alcohol" : "Non-alcoholic"}</div>
+            </div>
+          </div>
+          
+          {/* Device ID */}
+          <div className="bg-teal-700 bg-opacity-20 p-3 rounded-lg mt-3">
             <div className="flex items-center gap-2">
               <Smartphone size={16} className="text-teal-200" />
               <span className="text-xs text-teal-100">Connected Device</span>
@@ -130,14 +191,6 @@ const Home = () => {
           </div>
         </Link>
       </div>
-
-      
-      
-      
-
-  
-      
-    
     </div>
   );
 };
