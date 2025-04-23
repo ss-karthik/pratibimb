@@ -5,7 +5,7 @@ const models = {
         EX: "67b8742e7d193a1beb4b8621",
         code:"te"
     },
-    hi: {
+    Hindi: {
         XE: "656f0d0700d64169e2f8f3f8",
         ST: "660e9d6a3d23f057bbb012ce",
         EX: "6568524900d64169e2f8f3de",
