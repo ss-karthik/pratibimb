@@ -8,7 +8,8 @@ import app from "./app.js"
 import connectDB from "./db/db.js"
 import {requireAuth} from "./middlewares/authMiddleware.js";
 import { addBmi, showBmi } from "./controllers/bmiController.js";
-import translate from 'google-translate-api-browser';
+import { exTranslate, xeTranslate } from "./controllers/translateController.js";
+
 connectDB()
     .then(() => {
         app.on("error", (error) => {
@@ -35,6 +36,10 @@ app.get("/user", requireAuth, (req,res)=>{
 app.get("/bmi", requireAuth, showBmi);
 
 app.post("/bmi", addBmi);
+
+app.post("/ex", exTranslate);
+
+app.post("/xe", xeTranslate);
 
 /*
 app.post('/translate', async (req, res) => {

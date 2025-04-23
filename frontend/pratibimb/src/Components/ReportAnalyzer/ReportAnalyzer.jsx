@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { analyzeMedicalReport } from './geminiAPI';
-import {BACKEND_URL} from '../../../constants';
+import { BACKEND_URL } from '../../../constants';
+import axios from 'axios';
 
 const ReportAnalyzer = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,30 +14,54 @@ const ReportAnalyzer = () => {
   const [bmiList, setBmiList] = useState([]);
   const [twoWeeksAverages, setTwoWeeksAverages] = useState([]);
   const [pdata, setPdata] = useState({});
+  const [translatedResults, setTranslatedResults] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('English');
+  const [isTranslating, setIsTranslating] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Available languages
+  const availableLanguages = [
+    { name: 'English', code: 'en' }, // Default - no translation
+    { name: 'Hindi', code: 'hi' },
+    { name: 'Telugu', code: 'te' },
+    { name: 'Marathi', code: 'mr' },
+    { name: 'Malayalam', code: 'ml' },
+    { name: 'Tamil', code: 'ta' },
+    { name: 'Punjabi', code: 'pa' },
+    { name: 'Bengali', code: 'bn' },
+    { name: 'Assasamese', code: 'as' },
+    { name: 'Urdu', code: 'ur' },
+    { name: 'Nepali', code: 'ne' },
+    { name: 'Goan Konkani', code: 'gom' },
+    { name: 'Bodo', code: 'brx' },
+    { name: 'Kannada', code: 'kn' },
+    { name: 'Sanskrit', code: 'sa' }
+  ];
+
   useEffect(() => {
     async function fetchUserData() {
-          setIsLoading(true);
-          try {
-            const response = await fetch(`${BACKEND_URL}/user`, {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-            });
-            const data = await response.json();
-            console.log(data);
-            if (data.autherr) {
-              location.assign('/login');
-            }
-            if (data._id) {
-              setPdata(data);
-            }
-          } catch (err) {
-            console.log(err);
-          } finally {
-            setIsLoading(false);
-          }
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${BACKEND_URL}/user`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+        const data = await response.json();
+        console.log(data);
+        if (data.autherr) {
+          location.assign('/login');
         }
+        if (data._id) {
+          setPdata(data);
+        }
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
     async function fetchBmiData() {
       setIsLoading(true);
       try {
@@ -53,9 +78,9 @@ const ReportAnalyzer = () => {
         setIsLoading(false);
       }
     }
+    
     fetchUserData();
     fetchBmiData();
-    
   }, []);
 
   useEffect(() => {
@@ -64,6 +89,16 @@ const ReportAnalyzer = () => {
       setTwoWeeksAverages(twoWeeksData);
     }
   }, [bmiList]);
+
+  // Reset translation when language changes or new results arrive
+  useEffect(() => {
+    if (selectedLanguage === 'English') {
+      setTranslatedResults(null);
+    } else if (results) {
+      translateResults();
+    }
+  }, [selectedLanguage, results]);
+
   const formatDateKey = (date) => {
     return date.toISOString().split('T')[0];
   };
@@ -110,13 +145,13 @@ const ReportAnalyzer = () => {
   };
 
   const handleImageUpload = (e) => {
-
     const file = e.target.files[0];
     if (!file) return;
 
     // Reset states
     setResults(null);
     setError(null);
+    setTranslatedResults(null);
 
     // Check file type
     if (!file.type.startsWith('image/')) {
@@ -149,6 +184,7 @@ const ReportAnalyzer = () => {
 
     setIsLoading(true);
     setError(null);
+    setTranslatedResults(null);
 
     try {
       // Convert image to base64
@@ -188,10 +224,144 @@ const ReportAnalyzer = () => {
     setPreviewUrl(null);
     setResults(null);
     setError(null);
+    setTranslatedResults(null);
+    setSelectedLanguage('English');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  // Helper function to extract all translatable text from results
+  const extractTranslatableText = (results) => {
+    if (!results || !results.conditions || !results.conditions.length) {
+      return {};
+    }
+
+    let texts = {};
+    let index = 0;
+
+    results.conditions.forEach((condition, conditionIndex) => {
+      // Simple text fields
+      texts[`condition_${conditionIndex}`] = condition.condition;
+      texts[`description_${conditionIndex}`] = condition.description;
+      texts[`specialist_${conditionIndex}`] = condition.specialist;
+
+      // Array fields
+      condition.preventiveMeasures.forEach((measure, i) => {
+        texts[`preventiveMeasure_${conditionIndex}_${i}`] = measure;
+      });
+
+      condition.dos.forEach((item, i) => {
+        texts[`do_${conditionIndex}_${i}`] = item;
+      });
+
+      condition.donts.forEach((item, i) => {
+        texts[`dont_${conditionIndex}_${i}`] = item;
+      });
+
+      condition.foodToAvoid.forEach((food, i) => {
+        texts[`foodToAvoid_${conditionIndex}_${i}`] = food;
+      });
+
+      condition.foodToEat.forEach((food, i) => {
+        texts[`foodToEat_${conditionIndex}_${i}`] = food;
+      });
+    });
+
+    return texts;
+  };
+
+  // Helper function to apply translated text back to the result structure
+  const applyTranslations = (translations, originalResults) => {
+    if (!originalResults || !originalResults.conditions) {
+      return null;
+    }
+
+    // Create a deep copy to avoid modifying the original
+    const translatedResults = JSON.parse(JSON.stringify(originalResults));
+
+    translatedResults.conditions = translatedResults.conditions.map((condition, conditionIndex) => {
+      // Apply simple text translations
+      condition.condition = translations[`condition_${conditionIndex}`] || condition.condition;
+      condition.description = translations[`description_${conditionIndex}`] || condition.description;
+      condition.specialist = translations[`specialist_${conditionIndex}`] || condition.specialist;
+
+      // Apply array translations
+      condition.preventiveMeasures = condition.preventiveMeasures.map((_, i) => 
+        translations[`preventiveMeasure_${conditionIndex}_${i}`] || condition.preventiveMeasures[i]
+      );
+
+      condition.dos = condition.dos.map((_, i) => 
+        translations[`do_${conditionIndex}_${i}`] || condition.dos[i]
+      );
+
+      condition.donts = condition.donts.map((_, i) => 
+        translations[`dont_${conditionIndex}_${i}`] || condition.donts[i]
+      );
+
+      condition.foodToAvoid = condition.foodToAvoid.map((_, i) => 
+        translations[`foodToAvoid_${conditionIndex}_${i}`] || condition.foodToAvoid[i]
+      );
+
+      condition.foodToEat = condition.foodToEat.map((_, i) => 
+        translations[`foodToEat_${conditionIndex}_${i}`] || condition.foodToEat[i]
+      );
+
+      return condition;
+    });
+
+    return translatedResults;
+  };
+
+  // Function to translate results
+  const translateResults = async () => {
+    if (!results || selectedLanguage === 'English') {
+      setTranslatedResults(null);
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      // Find the language details
+      const language = availableLanguages.find(lang => lang.name === selectedLanguage)?.name;
+      if (!language) {
+        throw new Error('Selected language not found');
+      }
+
+      // Extract all text that needs translation
+      const textsToTranslate = extractTranslatableText(results);
+      
+      // Translate all texts
+      const response = await axios.post(`${BACKEND_URL}/ex`, {
+        language,
+        extractedKeys: JSON.stringify(textsToTranslate)
+      });
+
+      if (response.data && response.data.output && response.data.output[0]) {
+        // Parse the translated JSON
+        const translatedTexts = response.data.output[0].target;
+        console.log(translatedTexts);
+        // Apply translations back to the result structure
+        //const translated = applyTranslations(translatedTexts, results);
+        setTranslatedResults(translatedTexts);
+      } else {
+        throw new Error('Translation failed');
+      }
+    } catch (err) {
+      console.error('Error translating results:', err);
+      setError(`Translation failed: ${err.message}`);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Function to handle language change
+  const handleLanguageChange = (e) => {
+    setSelectedLanguage(e.target.value);
+  };
+
+  // Choose which results to display
+  const displayResults = translatedResults || results;
 
   return (
     <div className="max-w-4xl p-4 mx-auto bg-white rounded-lg shadow-lg mt-10 mb-20">
@@ -262,7 +432,36 @@ const ReportAnalyzer = () => {
         </div>
       </form>
 
-      {/* Results Display */}
+      {/* Language Selection */}
+      {results && results.conditions && results.conditions.length > 0 && (
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Select Language
+          </label>
+          <div className="flex items-center space-x-4">
+            <select
+              value={selectedLanguage}
+              onChange={handleLanguageChange}
+              className="block w-full md:w-auto py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={isTranslating}
+            >
+              {availableLanguages.map((lang) => (
+                <option key={lang.code} value={lang.name}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+            {isTranslating && (
+              <div className="flex items-center">
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-600 mr-2"></div>
+                <span className="text-sm text-gray-600">Translating...</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Loading indicator */}
       {isLoading && (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
@@ -270,11 +469,20 @@ const ReportAnalyzer = () => {
         </div>
       )}
 
-      {results && results.conditions && results.conditions.length > 0 ? (
+      {/* Results Display */}
+      {selectedLanguage!=='English' && 
+        <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4">Analysis Results</h2>
+        <div className="space-y-6">
+          {translatedResults}
+        </div>
+        </div>
+      }
+      {displayResults && displayResults.conditions && displayResults.conditions.length > 0 ? (
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Analysis Results</h2>
           <div className="space-y-6">
-            {results.conditions.map((condition, index) => (
+            {displayResults.conditions.map((condition, index) => (
               <div key={index} className="bg-white border border-gray-200 rounded-lg shadow-md p-6">
                 <h3 className="text-lg font-semibold text-blue-800 mb-2">
                   {condition.condition}
@@ -344,7 +552,7 @@ const ReportAnalyzer = () => {
             ))}
           </div>
         </div>
-      ) : results && results.conditions && results.conditions.length === 0 ? (
+      ) : displayResults && displayResults.conditions && displayResults.conditions.length === 0 ? (
         <div className="mt-8 text-center p-8 bg-green-50 rounded-lg">
           <p className="text-lg font-medium text-green-800">No health concerns detected in your medical report.</p>
           <p className="text-sm text-green-600 mt-2">
@@ -354,7 +562,6 @@ const ReportAnalyzer = () => {
       ) : null}
     </div>
   );
-
 }
 
-export default ReportAnalyzer
+export default ReportAnalyzer;
