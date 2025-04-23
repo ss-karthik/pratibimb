@@ -25,7 +25,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
  * @param {string} base64Image - Base64 encoded image data of medical report
  * @returns {Promise<{conditions: MedicalCondition[], rawResponse: string}>}
  */
-export async function analyzeMedicalReport(base64Image) {
+export async function analyzeMedicalReport(base64Image, twoWeekData, patientObj) {
   console.log('Starting medical report analysis...');
   try {
     if (!base64Image) {
@@ -48,6 +48,8 @@ export async function analyzeMedicalReport(base64Image) {
     };
 
     console.log('Sending image to API...', { imageSize: base64Data.length });
+    const bmiAvgString = JSON.stringify(twoWeekData);
+    const pdata = JSON.stringify(patientObj);
     const prompt = `Analyze this medical report image and extract important health information. The image is of a medical test report, lab result, or diagnostic report. Look for:
 
 1. Test Results and Values:
@@ -84,7 +86,7 @@ For each identified health condition or abnormal parameter, return a JSON object
 }
 
 If multiple conditions are detected, include multiple objects in the array. If no conditions are detected or if the image is not a medical report, return an empty array.
-
+Utilize the added past two weeks of BMI data of the patient, and other patient details if existing and not empty below. Patient Data: ${pdata}, Past Two Weeks BMI: ${bmiAvgString}.
 IMPORTANT: 
 1. Focus only on information visible in the report. Do not invent or assume diagnoses not supported by the report.
 2. Provide practical, evidence-based recommendations for each condition.

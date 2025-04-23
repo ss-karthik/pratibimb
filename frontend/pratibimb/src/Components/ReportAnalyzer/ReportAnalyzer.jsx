@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { analyzeMedicalReport } from './geminiAPI';
-
+import {BACKEND_URL} from '../../../constants';
 
 const ReportAnalyzer = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,9 +10,107 @@ const ReportAnalyzer = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [bmiList, setBmiList] = useState([]);
+  const [twoWeeksAverages, setTwoWeeksAverages] = useState([]);
+  const [pdata, setPdata] = useState({});
   const fileInputRef = useRef(null);
+  useEffect(() => {
+    async function fetchUserData() {
+          setIsLoading(true);
+          try {
+            const response = await fetch(`${BACKEND_URL}/user`, {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+            });
+            const data = await response.json();
+            console.log(data);
+            if (data.autherr) {
+              location.assign('/login');
+            }
+            if (data._id) {
+              setPdata(data);
+            }
+          } catch (err) {
+            console.log(err);
+          } finally {
+            setIsLoading(false);
+          }
+        }
+    async function fetchBmiData() {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${BACKEND_URL}/bmi`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+        const data = await response.json();
+        setBmiList(data);
+      } catch (err) {
+        console.error('Error fetching BMI data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchUserData();
+    fetchBmiData();
+    
+  }, []);
+
+  useEffect(() => {
+    if (bmiList.length > 0) {
+      const twoWeeksData = getPastTwoWeeksData();
+      setTwoWeeksAverages(twoWeeksData);
+    }
+  }, [bmiList]);
+  const formatDateKey = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const getPastTwoWeeksData = () => {
+    // Create an array to hold the past 14 days
+    const twoWeeksData = [];
+    const today = new Date();
+    
+    // Group BMI data by date
+    const bmiByDate = bmiList.reduce((acc, bmi) => {
+      const date = formatDateKey(new Date(bmi.createdAt));
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(bmi);
+      return acc;
+    }, {});
+    
+    // Loop through the past 14 days
+    for (let i = 0; i < 14; i++) {
+      const currentDate = new Date(today);
+      currentDate.setDate(today.getDate() - i);
+      const dayKey = formatDateKey(currentDate);
+      
+      const dayData = bmiByDate[dayKey] || [];
+      
+      // If there's data for this day, calculate averages
+      if (dayData.length > 0) {
+        const totalBmi = dayData.reduce((sum, record) => sum + record.bmi, 0);
+        const totalHeight = dayData.reduce((sum, record) => sum + record.height, 0);
+        const totalWeight = dayData.reduce((sum, record) => sum + record.weight, 0);
+        
+        twoWeeksData.push({
+          date: dayKey,
+          avgBmi: totalBmi / dayData.length,
+          avgHeight: totalHeight / dayData.length,
+          avgWeight: totalWeight / dayData.length,
+          count: dayData.length
+        });
+      } 
+    }
+    return twoWeeksData;
+  };
 
   const handleImageUpload = (e) => {
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -62,8 +160,10 @@ const ReportAnalyzer = () => {
         
         try {
           // Call the analysis function
-          const response = await analyzeMedicalReport(base64Image);
+          const response = await analyzeMedicalReport(base64Image, twoWeeksAverages, pdata);
           setResults(response);
+          console.log(twoWeeksAverages);
+          console.log(pdata);
         } catch (err) {
           console.error('Error analyzing medical report:', err);
           setError('Failed to analyze medical report. Please try again.');
