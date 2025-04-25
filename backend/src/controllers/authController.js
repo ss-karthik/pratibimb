@@ -43,7 +43,7 @@ export const signup = async (req,res)=>{
     try {
         const user = await User.create({email, password, deviceId, age, gender, smoker, alcoholic});
         const token = createToken(user._id);
-        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge*1000, secure: true,
+        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge*1000,
             sameSite: 'none', partitioned: true,
           });
         res.status(201).json({user: user._id});
@@ -58,7 +58,8 @@ export const login = async (req,res)=>{
     try {
         const user = await User.login(email, password);
         const token = createToken(user._id);
-        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge*1000});
+        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge*1000, 
+            sameSite: 'none', partitioned: true,});
         res.status(200).json({user: user._id});
     } catch(err){
         const errors = handleErrors(err);
