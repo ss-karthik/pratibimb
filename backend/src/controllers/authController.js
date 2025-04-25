@@ -68,6 +68,12 @@ export const login = async (req,res)=>{
 }
 
 export const logout = (req,res)=>{
-    res.cookie('jwt', '', {maxAge:1 });
+    res.cookie('jwt', '', { 
+      httpOnly: true, 
+      maxAge: 1, 
+      secure: true,
+      sameSite: 'none', 
+      partitioned: true
+    });
     res.status(200).json({ user: null });
-}
+  }
