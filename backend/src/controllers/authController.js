@@ -43,7 +43,7 @@ export const signup = async (req,res)=>{
     try {
         const user = await User.create({email, password, deviceId, age, gender, smoker, alcoholic});
         const token = createToken(user._id);
-        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge*1000, sameSite: 'none',
+        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge*1000, sameSite: 'Strict',
             partitioned: true
           });
         res.status(201).json({user: user._id});
