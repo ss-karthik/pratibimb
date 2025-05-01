@@ -28,7 +28,7 @@ export const addBmi = async (req, res) => {
 };
 
 export const deleteBmi = async (req, res) => {
-  const { bmiId } = req.params;
+  const { bmiId } = req.body;
   const user = req.user;
 
   try {

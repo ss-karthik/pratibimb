@@ -40,10 +40,11 @@ const Bmi = () => {
     
     setIsDeleting(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/bmi/${bmiId}`, {
+      const response = await fetch(`${BACKEND_URL}/bmi`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify({ bmiId: bmiId }),
       });
       
       if (response.ok) {
