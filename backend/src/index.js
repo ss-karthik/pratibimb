@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken"
 import app from "./app.js"
 import connectDB from "./db/db.js"
 import {requireAuth} from "./middlewares/authMiddleware.js";
-import { addBmi, showBmi } from "./controllers/bmiController.js";
+import { addBmi, showBmi, deleteBmi } from "./controllers/bmiController.js";
 import { exTranslate, xeTranslate } from "./controllers/translateController.js";
 
 connectDB()
@@ -36,6 +36,8 @@ app.get("/user", requireAuth, (req,res)=>{
 app.get("/bmi", requireAuth, showBmi);
 
 app.post("/bmi", addBmi);
+
+app.post("/bmidel", deleteBmi)
 
 app.post("/ex", exTranslate);
 

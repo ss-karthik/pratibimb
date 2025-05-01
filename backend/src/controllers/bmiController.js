@@ -27,6 +27,35 @@ export const addBmi = async (req, res) => {
   }
 };
 
+export const deleteBmi = async (req, res) => {
+  const { bmiId } = req.params;
+  const user = req.user;
+
+  try {
+    const bmiRecord = await Bmi.findById(bmiId);
+    
+    if (!bmiRecord) {
+      return res.status(404).json({ error: "BMI record not found" });
+    }
+    
+    if (bmiRecord.user.toString() !== user._id.toString()) {
+      return res.status(403).json({ error: "Unauthorized to delete this BMI record" });
+    }
+    
+    await User.findByIdAndUpdate(
+      user._id, 
+      { $pull: { bmiValues: bmiId } }
+    );
+    
+    await Bmi.findByIdAndDelete(bmiId);
+    
+    res.status(200).json({ message: "BMI record deleted successfully" });
+  } catch (err) {
+    console.error("Delete BMI error:", err);
+    res.status(400).json({ error: "Failed to delete BMI record", details: err.message });
+  }
+};
+
 export const showBmi = async (req,res)=>{
   const user = req.user;
   try {
