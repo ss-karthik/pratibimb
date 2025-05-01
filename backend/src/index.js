@@ -37,7 +37,7 @@ app.get("/bmi", requireAuth, showBmi);
 
 app.post("/bmi", addBmi);
 
-app.delete("/bmi", deleteBmi)
+app.delete("/bmi:bmiId", deleteBmi)
 
 app.post("/ex", exTranslate);
 

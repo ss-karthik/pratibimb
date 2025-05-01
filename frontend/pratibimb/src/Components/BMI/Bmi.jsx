@@ -1,36 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Activity, TrendingUp } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Activity, TrendingUp, Trash2 } from 'lucide-react';
 import { BACKEND_URL } from '../../../constants.js';
 import { Link } from 'react-router-dom';
+
 const Bmi = () => {
   const [bmiList, setBmiList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentViewDate, setCurrentViewDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const formatDateKey = (date) => {
     return date.toISOString().split('T')[0];
   };
 
-  useEffect(() => {
-    async function fetchBmiData() {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${BACKEND_URL}/bmi`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
-        const data = await response.json();
-        setBmiList(data);
-      } catch (err) {
-        console.error('Error fetching BMI data:', err);
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchBmiData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/bmi`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await response.json();
+      setBmiList(data);
+    } catch (err) {
+      console.error('Error fetching BMI data:', err);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchBmiData();
   }, []);
+
+  const deleteBmiRecord = async (bmiId) => {
+    if (isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/bmi/${bmiId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        // Refresh data after successful deletion
+        await fetchBmiData();
+      } else {
+        const error = await response.json();
+        console.error('Error deleting BMI record:', error);
+        alert('Failed to delete BMI record. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error deleting BMI record:', err);
+      alert('Failed to delete BMI record. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const bmiByDate = bmiList.reduce((acc, bmi) => {
     const date = formatDateKey(new Date(bmi.createdAt));
@@ -214,7 +244,7 @@ const Bmi = () => {
                 getSelectedDayBmiData().map((bmi, index) => {
                   const category = getBmiCategory(bmi.bmi);
                   return (
-                    <div key={index} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div key={bmi._id || index} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex justify-between items-center mb-3">
                         <div>
                           <div className="text-2xl font-bold text-gray-800">{bmi.bmi.toFixed(1)}</div>
@@ -222,11 +252,25 @@ const Bmi = () => {
                             {category.label}
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500 bg-gray-50 px-2 py-1 rounded-md">
-                          {new Date(bmi.createdAt).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm text-gray-500 bg-gray-50 px-2 py-1 rounded-md">
+                            {new Date(bmi.createdAt).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Are you sure you want to delete this BMI record?')) {
+                                deleteBmiRecord(bmi._id);
+                              }
+                            }}
+                            disabled={isDeleting}
+                            className="p-2 rounded-full hover:bg-red-50 text-red-500 transition-colors"
+                            aria-label="Delete BMI record"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm mt-4">
