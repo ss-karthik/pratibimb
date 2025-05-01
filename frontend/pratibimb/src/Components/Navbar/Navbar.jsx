@@ -1,6 +1,7 @@
 import { Clipboard, House, Ruler, MessageSquareText } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
+import GoogleTranslate from '../GoogleTranslate/GoogleTranslate';
 const Navbar = () => {
   return (
     <nav className="fixed bottom-0 left-0 w-full bg-teal-800 text-white p-4">
@@ -9,6 +10,7 @@ const Navbar = () => {
         <Link to='/bmi'><Ruler/></Link>
         <Link to='/reports'><Clipboard/></Link>
         <Link to='/medchat'><MessageSquareText/></Link>
+        <GoogleTranslate />
       </div>
     </nav>
   )
